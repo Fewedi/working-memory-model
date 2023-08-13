@@ -32,18 +32,10 @@ def setup_weights_ixv():
 def setup_weights_vxv():
     #TODO: Implement setup of weights between visual layer neurons
     return np.random.rand(SENS_AMOUNT * N_SENS, SENS_AMOUNT * N_SENS) * 2 - 1
-    return np.array([[0.0, 0.0, 0.0, 0.0],
-                        [0.0, 0.0, 0.0, 0.0],
-                        [0.0, 0.0, 0.0, 0.0],
-                        [0.0, 0.0, 0.0, 0.0]])
 
 def setup_weights_vxr():
     #TODO: Implement setup of weights between visual and random layer neurons
     return np.random.rand(VIS_LAYER_AMOUNT * N_SENS, N_RAND) * 2 - 1
-    return np.array([[-0.3, 0.0, 0.6, 0.0],
-                     [0.0, 0.5, 0.4, -0.2],
-                        [0.0, 0.0, 0.4, 0.0],
-                        [0.1, -0.9, 0.0, 0.3]])
 
 def setup_weights_rxv(vxr):
     #TODO: Implement setup of weights between random and visual layer neurons
