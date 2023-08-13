@@ -35,7 +35,7 @@ def setup_weights_vxv():
 
 def setup_weights_vxr():
     #TODO: Implement setup of weights between visual and random layer neurons
-    return np.random.rand(VIS_LAYER_AMOUNT * N_SENS, N_RAND) * 2 - 1
+    return np.random.rand(SENS_AMOUNT * N_SENS, N_RAND) * 2 - 1
 
 def setup_weights_rxv(vxr):
     #TODO: Implement setup of weights between random and visual layer neurons
