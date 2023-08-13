@@ -1,48 +1,61 @@
 
 import numpy as np
 
+# Stepsto run the simulation
 STEPS = 1
+# Step to stop the initialisation of the input layer
 STEP_STOP_INIT = 10
-VIS_LAYER_SIZE = 4
-VIS_LAYER_AMOUNT = 1
-RAND_LAYER_SIZE = 2
+# Amount of neurons in the visual layer
+N_SENS = 4
+# Amount of rings
+SENS_AMOUNT = 1
+# Amount of neurons in the random Layer
+N_RAND = 2
+
 
 def setup_visual_layer_neurons():
-    return np.random.rand(VIS_LAYER_AMOUNT * VIS_LAYER_SIZE) * 2 - 1
+    #TODO: Implement setup of visual layer neurons
+    return np.random.rand(SENS_AMOUNT * N_SENS) * 2 - 1
 
 def setup_random_layer_neurons():
-    return np.random.rand(RAND_LAYER_SIZE) * 2 - 1
+    #TODO: Implement setup of random layer neurons
+    return np.random.rand(N_RAND) * 2 - 1
 
 def setup_input_layer_neurons():
-    return np.random.rand(VIS_LAYER_AMOUNT * VIS_LAYER_SIZE) * 2 - 1
+    #TODO: Implement setup of input layer neurons
+    return np.random.rand(SENS_AMOUNT * N_SENS) * 2 - 1
 
 def setup_weights_ixv():
-    return np.random.rand(VIS_LAYER_AMOUNT * VIS_LAYER_SIZE, VIS_LAYER_AMOUNT * VIS_LAYER_SIZE)* 2 - 1
-    # return np.array([[1.0, 1.0, 1.0, 1.0],
-    #                     [1.0, 1.0, 1.0, 1.0],
-    #                     [1.0, 1.0, 1.0, 1.0],
-    #                     [1.0, 1.0, 1.0, 1.0]])
-
+    # is this sufficient?
+    return np.diag(SENS_AMOUNT * N_SENS, SENS_AMOUNT * N_SENS)* 2 - 1
+    
 def setup_weights_vxv():
-    return np.random.rand(VIS_LAYER_AMOUNT * VIS_LAYER_SIZE, VIS_LAYER_AMOUNT * VIS_LAYER_SIZE) * 2 - 1
+    #TODO: Implement setup of weights between visual layer neurons
+    return np.random.rand(SENS_AMOUNT * N_SENS, SENS_AMOUNT * N_SENS) * 2 - 1
     return np.array([[0.0, 0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0, 0.0]])
 
 def setup_weights_vxr():
-    return np.random.rand(VIS_LAYER_AMOUNT * VIS_LAYER_SIZE, RAND_LAYER_SIZE) * 2 - 1
+    #TODO: Implement setup of weights between visual and random layer neurons
+    return np.random.rand(VIS_LAYER_AMOUNT * N_SENS, N_RAND) * 2 - 1
     return np.array([[-0.3, 0.0, 0.6, 0.0],
                      [0.0, 0.5, 0.4, -0.2],
                         [0.0, 0.0, 0.4, 0.0],
                         [0.1, -0.9, 0.0, 0.3]])
 
+def setup_weights_rxv(vxr):
+    #TODO: Implement setup of weights between random and visual layer neurons
+    return vxr.transpose()
+
 def setup_output_matrix():
     print("Output Matrix: ")
-    print(np.zeros((STEPS, RAND_LAYER_SIZE)))
-    return np.zeros((STEPS, RAND_LAYER_SIZE))
+    print(np.zeros((STEPS, N_RAND)))
+    return np.zeros((STEPS, N_RAND))
 
 def transfer_function(layer_neurons, weights):
+    # is this sufficient?
     print("")
     print("Shape Layer Neurons: ", layer_neurons.shape)
     print("Layer Neurons: ", layer_neurons)
@@ -55,12 +68,11 @@ def transfer_function(layer_neurons, weights):
 
 def activation_function(transfer_input, layer_neurons):
     #TODO: Implement activation function
-    # sind die layer_neurons überhaupt relevant?
+    # sind die layer_neurons überhaupt relevant hierfür?
     
     return transfer_input
 
 def merge_two_transfers(first_sum, second_sum):
-    
     return np.add(first_sum, second_sum)
 
 def start():
@@ -71,23 +83,25 @@ def start():
     weights_ixv = setup_weights_ixv()
     weights_vxv = setup_weights_vxv()
     weights_vxr = setup_weights_vxr()
+    weights_rxv = setup_weights_rxv(weights_vxr)
 
     for i in range(STEPS):
         print("VISUAL LAYER NEURONS: ")
         print("---------------------------------------")
-        new_visual_layer_neurons = activation_function(merge_two_transfers(merge_two_transfers(transfer_function(input_layer_neurons, weights_ixv), 
+        new_visual_layer_neurons = activation_function(merge_two_transfers(merge_two_transfers(
+                                                                           transfer_function(input_layer_neurons, weights_ixv), 
                                                                            transfer_function(visual_layer_neurons, weights_vxv)), 
                                                                            transfer_function(random_layer_neurons, weights_vxr)),
                                                                             visual_layer_neurons)
         print("RANDOM LAYER NEURONS: ")
         print("---------------------------------------")
-        new_random_layer_neurons = activation_function(transfer_function(visual_layer_neurons, weights_vxr.transpose()), random_layer_neurons)
+        new_random_layer_neurons = activation_function(transfer_function(visual_layer_neurons, weights_rxv), random_layer_neurons)
 
         visual_layer_neurons = new_visual_layer_neurons
         random_layer_neurons = new_random_layer_neurons
 
         if i == STEP_STOP_INIT:
-            input_layer_neurons = np.zeros(VIS_LAYER_AMOUNT * VIS_LAYER_SIZE)
+            input_layer_neurons = np.zeros(SENS_AMOUNT * N_SENS)
 
         output[i] = random_layer_neurons
         print("Visual Layer Neurons: ", visual_layer_neurons)
@@ -97,7 +111,5 @@ def start():
     print("OUTPUT: ")
     print("---------------------------------------")
     print(output)
-
-
 
 start()
