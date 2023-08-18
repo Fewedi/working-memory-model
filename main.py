@@ -5,41 +5,69 @@ import numpy as np
 STEPS = 1
 # Step to stop the initialisation of the input layer
 STEP_STOP_INIT = 10
-# Amount of neurons in the visual layer
-N_SENS = 4
-# Amount of rings
-SENS_AMOUNT = 1
+# Amount of neurons in the sensory layer
+# final should be 512
+N_SENS = 16
+# Amount of rings Defaulting with one ring atm
+# SENS_AMOUNT = 1
 # Amount of neurons in the random Layer
-N_RAND = 2
+# final should be 1024
+N_RAND = 32
 
 
-def setup_visual_layer_neurons():
-    #TODO: Implement setup of visual layer neurons
-    return np.random.rand(SENS_AMOUNT * N_SENS) * 2 - 1
+alpha_intra_connections = 0.28
+
+
+def setup_sensory_layer_neurons():
+    # Neurons in the sensory layer are arranged in a circle, but the array is only a pointer and does not need any specific value. The ordered numbers are only for better understanding.
+    return np.arange(N_SENS)
 
 def setup_random_layer_neurons():
-    #TODO: Implement setup of random layer neurons
-    return np.random.rand(N_RAND) * 2 - 1
+    # The array is only a pointer and does not need any specific value. The ordered numbers are only for better understanding. Random layer should be twice the size of the sensory layer. 
+    return np.arange(N_RAND)
 
+# TODO ?? Es gibt nur die beiden layer mit neurons
 def setup_input_layer_neurons():
     #TODO: Implement setup of input layer neurons
-    return np.random.rand(SENS_AMOUNT * N_SENS) * 2 - 1
+    return np.random.rand(N_SENS) * 2 - 1
 
-def setup_weights_ixv():
+def setup_weights_ixs():
     # is this sufficient?
-    return np.diag(SENS_AMOUNT * N_SENS, SENS_AMOUNT * N_SENS)* 2 - 1
+    a = N_SENS * 2 - 1
+    b = N_SENS * 2 - 1
+    return np.diag(np.random.rand(a), b)
     
-def setup_weights_vxv():
-    #TODO: Implement setup of weights between visual layer neurons
-    return np.random.rand(SENS_AMOUNT * N_SENS, SENS_AMOUNT * N_SENS) * 2 - 1
+def setup_weights_sxs(sensory_neuron_array):
+    # Setup of weights between sensory layer neurons
+    k1 = 1.0
+    k2 = 0.25
+    A = 2.0
+    num_neurons = len(sensory_neuron_array)
+    weight_matrix = np.zeros((num_neurons, num_neurons))
+    
+    for i in range(num_neurons):
+        for j in range(num_neurons):
+            if i == j:
+                weight_matrix[i, j] = 0.0  # Self-excitation is set to 0
+            else:
+                angle_i = 2 * np.pi * i / num_neurons
+                angle_j = 2 * np.pi * j / num_neurons
+                angle_diff = angle_i - angle_j
+                first_term = A * np.exp(k1 * (np.cos(angle_diff) - 1))
+                second_term = A * np.exp(k2 * (np.cos(angle_diff) - 1))
+                weight = alpha_intra_connections + first_term - second_term
+                weight_matrix[i, j] = weight
 
-def setup_weights_vxr():
-    #TODO: Implement setup of weights between visual and random layer neurons
-    return np.random.rand(SENS_AMOUNT * N_SENS, N_RAND) * 2 - 1
+    return weight_matrix
 
-def setup_weights_rxv(vxr):
-    #TODO: Implement setup of weights between random and visual layer neurons
-    return vxr.transpose()
+
+def setup_weights_sxr():
+    #TODO: Implement setup of weights between sensory and random layer neurons
+    return np.random.rand(N_SENS, N_RAND) * 2 - 1
+
+def setup_weights_rxs(sxr):
+    #TODO: Implement setup of weights between random and sensory layer neurons
+    return sxr.transpose()
 
 def setup_output_matrix():
     print("Output Matrix: ")
@@ -69,34 +97,34 @@ def merge_two_transfers(first_sum, second_sum):
 
 def start():
     output = setup_output_matrix()
-    visual_layer_neurons = setup_visual_layer_neurons()
+    sensory_layer_neurons = setup_sensory_layer_neurons()
     random_layer_neurons = setup_random_layer_neurons()
     input_layer_neurons = setup_input_layer_neurons()
-    weights_ixv = setup_weights_ixv()
-    weights_vxv = setup_weights_vxv()
-    weights_vxr = setup_weights_vxr()
-    weights_rxv = setup_weights_rxv(weights_vxr)
+    weights_ixs = setup_weights_ixs()
+    weights_sxs = setup_weights_sxs()
+    weights_sxr = setup_weights_sxr()
+    weights_rxs = setup_weights_rxs(weights_sxr)
 
     for i in range(STEPS):
-        print("VISUAL LAYER NEURONS: ")
+        print("SENSORY LAYER NEURONS: ")
         print("---------------------------------------")
-        new_visual_layer_neurons = activation_function(merge_two_transfers(merge_two_transfers(
-                                                                           transfer_function(input_layer_neurons, weights_ixv), 
-                                                                           transfer_function(visual_layer_neurons, weights_vxv)), 
-                                                                           transfer_function(random_layer_neurons, weights_vxr)),
-                                                                            visual_layer_neurons)
+        new_sensory_layer_neurons = activation_function(merge_two_transfers(merge_two_transfers(
+                                                                           transfer_function(input_layer_neurons, weights_ixs), 
+                                                                           transfer_function(sensory_layer_neurons, weights_sxs)), 
+                                                                           transfer_function(random_layer_neurons, weights_sxr)),
+                                                                            sensory_layer_neurons)
         print("RANDOM LAYER NEURONS: ")
         print("---------------------------------------")
-        new_random_layer_neurons = activation_function(transfer_function(visual_layer_neurons, weights_rxv), random_layer_neurons)
+        new_random_layer_neurons = activation_function(transfer_function(sensory_layer_neurons, weights_rxs), random_layer_neurons)
 
-        visual_layer_neurons = new_visual_layer_neurons
+        sensory_layer_neurons = new_sensory_layer_neurons
         random_layer_neurons = new_random_layer_neurons
 
         if i == STEP_STOP_INIT:
             input_layer_neurons = np.zeros(SENS_AMOUNT * N_SENS)
 
         output[i] = random_layer_neurons
-        print("Visual Layer Neurons: ", visual_layer_neurons)
+        print("Sesnory Layer Neurons: ", sensory_layer_neurons)
         print("Random Layer Neurons: ", random_layer_neurons)
         print("")
     
