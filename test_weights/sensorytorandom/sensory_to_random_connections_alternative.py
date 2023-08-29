@@ -1,13 +1,27 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
+# desired_mean = 0.95
+# num_weights = 1000  # Number of weights you want to generate
 
-alpha = 2100
+# # Calculate the standard deviation for the normal distribution.
+# # This will depend on how "spread out" you want the weights to be.
+# # You can adjust this value based on your preference.
+# desired_std_dev = 0.2
 
-"""
-    Rows represent the neurons in the "random" network.
-    Columns represent the neurons in the "sensory" network.
-"""
+# # Generate weights from a normal distribution with the desired mean and standard deviation.
+# weights = np.random.normal(desired_mean, desired_std_dev, num_weights)
+
+# # Adjust the generated weights so that their average matches the desired_mean exactly.
+# weights_adjusted = weights + (desired_mean - np.mean(weights))
+
+# # Print the statistics of the generated weights.
+# print("Generated weights:")
+# print(weights_adjusted)
+# print("Mean:", np.mean(weights_adjusted))
+# print("Standard Deviation:", np.std(weights_adjusted))
+
+# # You can use the weights_adjusted array for further processing.
+
 
 def create_weight_matrix_feedforward(sensory_array, random_array, excitatory_probability):
     N_sensory = len(sensory_array)
@@ -26,33 +40,13 @@ def create_weight_matrix_feedforward(sensory_array, random_array, excitatory_pro
     alpha = 2100  # You need to define the alpha value
     
     for i in range(N_sensory):
-        N_excitatory_i = np.count_nonzero(weight_matrix[i] > 0)
         for j in range(N_random):
             if weight_matrix[i, j] > 0:
-                weight_matrix[i, j] = (alpha / N_excitatory_i) - (alpha / (8 * N_sensory))
+                desired_mean = 0.95  # Define your desired mean here
+                desired_std_dev = 0.2  # Define your desired standard deviation here
+                weight_matrix[i, j] = np.random.normal(desired_mean, desired_std_dev)
             else:
                 weight_matrix[i, j] = - (alpha / (8 * N_sensory))
-    
-    return weight_matrix
-
-    # we calculate the number of values that are positive
-    num_positive = np.sum(weight_matrix > 0)
-
-    print("num_positive: ", num_positive)
-
-    print("alpha: ", alpha)
-    print("N_sensory: ", N_sensory)
-    w_ex = (alpha / num_positive) - (alpha / (3 * N_sensory))
-    w_in = -alpha / (3 * N_sensory)
-    
-    print("w_ex: ", w_ex)
-    print("w_in: ", w_in)  
-
-    # we set all positive values to 1/num_positive
-    weight_matrix[weight_matrix > 0] = w_ex
-
-    # we set all negative values to w_in
-    weight_matrix[weight_matrix < 0] = w_in
     
     return weight_matrix
 
@@ -91,7 +85,7 @@ weight_matrix = create_weight_matrix_feedforward(sensory_array, random_array, ex
 
 #print number of all positive values in matrix:
 print("Number of positive values:", np.sum(weight_matrix > 0))
-
+print(weight_matrix)
 positive_avg, negative_avg = calculate_average(weight_matrix)
 print("Average of positive values:", positive_avg)
 print("Average of negative values:", negative_avg)

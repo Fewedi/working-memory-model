@@ -61,9 +61,32 @@ def setup_weights_sxs(sensory_neuron_array):
     return weight_matrix
 
 
-def setup_weights_sxr():
-    #TODO: Implement setup of weights between sensory and random layer neurons
-    return np.random.rand(N_SENS, N_RAND) * 2 - 1
+def setup_weights_sxr(sensory_array, random_array, excitatory_probability): #def create_weight_matrix_feedforward():
+    N_sensory = len(sensory_array)
+    N_random = len(random_array)
+    
+    weight_matrix = np.zeros((N_sensory, N_random))  # Swap dimensions
+    
+    for i in range(N_sensory):  # Loop through sensory neurons
+        for j in range(N_random):  # Loop through random neurons
+            if np.random.rand() < excitatory_probability:
+                weight_matrix[i, j] = 1  # Excitatory weight range
+            else:
+                weight_matrix[i, j] = -1  # Inhibitory weight range
+    
+    # Adjust weights based on your specified formula
+    alpha = 2100  # You need to define the alpha value
+    
+    for i in range(N_sensory):
+        for j in range(N_random):
+            if weight_matrix[i, j] > 0:
+                desired_mean = 0.95  # Define your desired mean here
+                desired_std_dev = 0.2  # Define your desired standard deviation here
+                weight_matrix[i, j] = np.random.normal(desired_mean, desired_std_dev)
+            else:
+                weight_matrix[i, j] = - (alpha / (8 * N_sensory))
+    
+    return weight_matrix
 
 def setup_weights_rxs(sxr):
     #TODO: Implement setup of weights between random and sensory layer neurons
