@@ -1,27 +1,5 @@
+from copy import deepcopy
 import numpy as np
-
-# desired_mean = 0.95
-# num_weights = 1000  # Number of weights you want to generate
-
-# # Calculate the standard deviation for the normal distribution.
-# # This will depend on how "spread out" you want the weights to be.
-# # You can adjust this value based on your preference.
-# desired_std_dev = 0.2
-
-# # Generate weights from a normal distribution with the desired mean and standard deviation.
-# weights = np.random.normal(desired_mean, desired_std_dev, num_weights)
-
-# # Adjust the generated weights so that their average matches the desired_mean exactly.
-# weights_adjusted = weights + (desired_mean - np.mean(weights))
-
-# # Print the statistics of the generated weights.
-# print("Generated weights:")
-# print(weights_adjusted)
-# print("Mean:", np.mean(weights_adjusted))
-# print("Standard Deviation:", np.std(weights_adjusted))
-
-# # You can use the weights_adjusted array for further processing.
-
 
 def create_weight_matrix_feedforward(sensory_array, random_array, excitatory_probability):
     N_sensory = len(sensory_array)
@@ -49,6 +27,25 @@ def create_weight_matrix_feedforward(sensory_array, random_array, excitatory_pro
                 weight_matrix[i, j] = - (alpha / (8 * N_sensory))
     
     return weight_matrix
+
+def create_weight_matrix_feedback(feedback_matrix):
+    transposed_matrix = np.transpose(feedback_matrix)
+    N_random = len(transposed_matrix)
+    N_sensory = len(transposed_matrix[0])
+    
+    # Adjust weights based on your specified formula
+    beta = 200  # You need to define the alpha value
+    
+    for i in range(N_random):
+        for j in range(N_sensory):
+            if transposed_matrix[i, j] > 0:
+                desired_mean = 0.36  # Define your desired mean here
+                desired_std_dev = 0.05  # Define your desired standard deviation here
+                transposed_matrix[i, j] = np.random.normal(desired_mean, desired_std_dev)
+            else:
+                transposed_matrix[i, j] = - (beta / N_random)
+    
+    return transposed_matrix
 
 def calculate_average(matrix):
     positive_sum = 0
@@ -81,7 +78,12 @@ sensory_array = np.arange(512)
 random_array = np.arange(1024)
 excitatory_probability = 0.35
 
-weight_matrix = create_weight_matrix_feedforward(sensory_array, random_array, excitatory_probability)
+weight_matrix_ff = create_weight_matrix_feedforward(sensory_array, random_array, excitatory_probability)
+weight_matrix = create_weight_matrix_feedback(weight_matrix_ff, random_array)
+
+for row in weight_matrix:
+    matrix_sum = np.sum(row)
+    print("Sum of all values in the matrix:", matrix_sum)
 
 #print number of all positive values in matrix:
 print("Number of positive values:", np.sum(weight_matrix > 0))
@@ -89,7 +91,3 @@ print(weight_matrix)
 positive_avg, negative_avg = calculate_average(weight_matrix)
 print("Average of positive values:", positive_avg)
 print("Average of negative values:", negative_avg)
-
-for row in weight_matrix:
-    matrix_sum = np.sum(row)
-    print("Sum of all values in the matrix:", matrix_sum)

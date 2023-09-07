@@ -9,7 +9,21 @@ alpha = 2100
     Columns represent the neurons in the "sensory" network.
 """
 
-def create_weight_matrix_feedforward(sensory_array, random_array, excitatory_probability):
+def sum_excitatory_connections_to_neuron_i(intra_weight_matrix, neuron_i):
+    num_neurons = len(intra_weight_matrix)
+    excitatory_sum = 0
+    
+    for j in range(num_neurons):
+        if j != neuron_i and intra_weight_matrix[j, neuron_i] > 0:
+            excitatory_sum = excitatory_sum + 1
+    
+    return excitatory_sum
+
+def sum_inter_network_excitatory_connections_to_neuron_i(weight_matrix_feedforward, neuron_i):
+    excitatory_sum = np.sum(weight_matrix_feedforward[neuron_i, weight_matrix_feedforward[neuron_i, :] > 0])
+    return excitatory_sum
+
+def create_weight_matrix_feedforward(sensory_array, random_array, excitatory_probability, intra_weight_matrix):
     N_sensory = len(sensory_array)
     N_random = len(random_array)
     
@@ -26,7 +40,8 @@ def create_weight_matrix_feedforward(sensory_array, random_array, excitatory_pro
     alpha = 2100  # You need to define the alpha value
     
     for i in range(N_sensory):
-        N_excitatory_i = np.count_nonzero(weight_matrix[i] > 0)
+        N_excitatory_i = sum_inter_network_excitatory_connections_to_neuron_i(weight_matrix, i)
+        print(N_excitatory_i)
         for j in range(N_random):
             if weight_matrix[i, j] > 0:
                 weight_matrix[i, j] = (alpha / N_excitatory_i) - (alpha / (8 * N_sensory))
@@ -35,25 +50,27 @@ def create_weight_matrix_feedforward(sensory_array, random_array, excitatory_pro
     
     return weight_matrix
 
-    # we calculate the number of values that are positive
-    num_positive = np.sum(weight_matrix > 0)
-
-    print("num_positive: ", num_positive)
-
-    print("alpha: ", alpha)
-    print("N_sensory: ", N_sensory)
-    w_ex = (alpha / num_positive) - (alpha / (3 * N_sensory))
-    w_in = -alpha / (3 * N_sensory)
+def create_weight_matrix(neuron_array):
+    k1 = 1.0
+    k2 = 0.25
+    A = 2.0
+    alpha = 0.28
+    num_neurons = len(neuron_array)
+    weight_matrix = np.zeros((num_neurons, num_neurons))
     
-    print("w_ex: ", w_ex)
-    print("w_in: ", w_in)  
+    for i in range(num_neurons):
+        for j in range(num_neurons):
+            if i == j:
+                weight_matrix[i, j] = 0.0  # Self-excitation is set to 0
+            else:
+                angle_i = 2 * np.pi * i / num_neurons
+                angle_j = 2 * np.pi * j / num_neurons
+                angle_diff = angle_i - angle_j
+                first_term = A * np.exp(k1 * (np.cos(angle_diff) - 1))
+                second_term = A * np.exp(k2 * (np.cos(angle_diff) - 1))
+                weight = alpha + first_term - second_term
+                weight_matrix[i, j] = weight
 
-    # we set all positive values to 1/num_positive
-    weight_matrix[weight_matrix > 0] = w_ex
-
-    # we set all negative values to w_in
-    weight_matrix[weight_matrix < 0] = w_in
-    
     return weight_matrix
 
 def calculate_average(matrix):
@@ -87,7 +104,9 @@ sensory_array = np.arange(512)
 random_array = np.arange(1024)
 excitatory_probability = 0.35
 
-weight_matrix = create_weight_matrix_feedforward(sensory_array, random_array, excitatory_probability)
+intra_weight_matrix = create_weight_matrix(sensory_array)
+
+weight_matrix = create_weight_matrix_feedforward(sensory_array, random_array, excitatory_probability, intra_weight_matrix)
 
 #print number of all positive values in matrix:
 print("Number of positive values:", np.sum(weight_matrix > 0))
