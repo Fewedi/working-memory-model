@@ -134,7 +134,7 @@ def neuron_activation(input):
     firing_rate = firing_rate_function(input)
 
     # Generate an array of length 10 with Poisson-distributed values
-    poisson_array = np.random.poisson(firing_rate, size=10)
+    poisson_array = np.random.poisson(firing_rate, size=100)
     activation = np.sum(poisson_array) - (input / len(poisson_array))
     #activation = firing_rate - (input / 10)
     
