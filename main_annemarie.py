@@ -214,47 +214,49 @@ def run_simulation():
 
 result_matrix = run_simulation()
 
-# Convert the NumPy array to a Pandas DataFrame
-df = pd.DataFrame(result_matrix)
 
-# Specify the file path where you want to save the CSV file
-csv_file_path = "matrix_data.csv"
 
-# Define a format string to display numbers without scientific notation
-format_str = "%.6f"  # This example uses 6 decimal places
+def vis_anemarie(result_matrix):
+    # Convert the NumPy array to a Pandas DataFrame
+    df = pd.DataFrame(result_matrix)
+    # Specify the file path where you want to save the CSV file
+    csv_file_path = "matrix_data.csv"
 
-# Save the DataFrame as a CSV file using pandas.to_csv() with the specified format
-df.to_csv(csv_file_path, header=False, index=False, float_format=format_str)
+    # Define a format string to display numbers without scientific notation
+    format_str = "%.6f"  # This example uses 6 decimal places
 
-# Iterate over each row in the matrix using a for loop
-for i, current_row in enumerate(result_matrix):
-    column = [i] * len(current_row)
-    plt.scatter(column, current_row, c="black")
+    # Save the DataFrame as a CSV file using pandas.to_csv() with the specified format
+    df.to_csv(csv_file_path, header=False, index=False, float_format=format_str)
 
-plt.show()
+    # Iterate over each row in the matrix using a for loop
+    for i, current_row in enumerate(result_matrix):
+        column = [i] * len(current_row)
+        plt.scatter(column, current_row, c="black")
 
-for row in result_matrix:
-    print(np.sum(row))
+    plt.show()
 
-# Initial input (reference point)
-initial_input = result_matrix[0]
+    for row in result_matrix:
+        print(np.sum(row))
 
-# Calculate deviations for each iteration
-deviations = [np.abs(np.array(initial_input) - np.array(iteration)) for iteration in result_matrix]
+    # Initial input (reference point)
+    initial_input = result_matrix[0]
 
-# Calculate a single measure of deviation for each iteration, e.g., the mean deviation
-mean_deviations = [np.mean(deviation) for deviation in deviations]
+    # Calculate deviations for each iteration
+    deviations = [np.abs(np.array(initial_input) - np.array(iteration)) for iteration in result_matrix]
 
-# Create a list of iteration numbers (assuming one iteration per data point)
-iterations = list(range(len(result_matrix)))
+    # Calculate a single measure of deviation for each iteration, e.g., the mean deviation
+    mean_deviations = [np.mean(deviation) for deviation in deviations]
 
-# Create the plot
-plt.figure(figsize=(10, 5))
-plt.plot(iterations, mean_deviations, marker='o', linestyle='-', color='b')
-plt.xlabel('Iteration')
-plt.ylabel('Mean Deviation from Initial Input')
-plt.title('Deviation from Initial Input Over Time')
-plt.grid(True)
+    # Create a list of iteration numbers (assuming one iteration per data point)
+    iterations = list(range(len(result_matrix)))
 
-# Show the plot
-plt.show()
+    # Create the plot
+    plt.figure(figsize=(10, 5))
+    plt.plot(iterations, mean_deviations, marker='o', linestyle='-', color='b')
+    plt.xlabel('Iteration')
+    plt.ylabel('Mean Deviation from Initial Input')
+    plt.title('Deviation from Initial Input Over Time')
+    plt.grid(True)
+
+    # Show the plot
+    plt.show()
