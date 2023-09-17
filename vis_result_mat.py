@@ -58,9 +58,11 @@ def calc_diff_for_every_two_iterations(result_matrix):
 
 
 
-def one_run(n_sens, n_rand, foldername, means, vars, diffs, run_names):
+def one_run(n_sens, n_rand, foldername, means, vars, diffs, run_names, track_input_duration = False):
     main_annemarie.N_RAND = n_rand
     main_annemarie.N_SENS = n_sens
+    main_annemarie.STEPS = 10
+    main_annemarie.STEP_STOP_INIT = 2
     result_matrix = main_annemarie.run_simulation()
     means.append(calc_mean_for_each_iteration(result_matrix))
     vars.append(calc_var_for_each_iteration(result_matrix))
@@ -77,6 +79,9 @@ def one_run(n_sens, n_rand, foldername, means, vars, diffs, run_names):
 
     df.to_csv(csv_file_path, header=False, index=False, float_format=format_str)
     run_name = "sens_{n_sens}_rand_{n_rand}"
+    if track_input_duration:
+        run_name = run_name + "_with_input_duration_of_" + str(main_annemarie.INPUT_DURATION)
+
     run_names.append(run_name.format(n_sens=n_sens, n_rand=n_rand))
     filename_template = run_name + ".png"
     if CREATE_HEATMAPS:
@@ -84,7 +89,7 @@ def one_run(n_sens, n_rand, foldername, means, vars, diffs, run_names):
 
 
 
-def multiple_runs_sizes(min_sens = 8, max_sens = 1024, factor_rand_sens = 2):
+def multiple_runs_sizes(min_sens = 8, max_sens = 2048, factor_rand_sens = 2):
 
     means = []
     vars = []
@@ -99,7 +104,7 @@ def multiple_runs_sizes(min_sens = 8, max_sens = 1024, factor_rand_sens = 2):
 
     return means, vars, diffs, run_names
 
-def multiple_runs_nrand(min_rand = 8, max_rand = 2048, fixed_sens = 512):
+def multiple_runs_nrand(min_rand = 8, max_rand = 4096, fixed_sens = 512):
     
     means = []
     vars = []
@@ -113,7 +118,7 @@ def multiple_runs_nrand(min_rand = 8, max_rand = 2048, fixed_sens = 512):
 
     return means, vars, diffs, run_names
 
-def multiple_runs_nsens(min_sens = 8, max_sens = 1024, fixed_rand = 1024):
+def multiple_runs_nsens(min_sens = 8, max_sens = 2048, fixed_rand = 1024):
     
     means = []
     vars = []
@@ -177,12 +182,22 @@ def standard_run_for_heatmaps():
     CREATE_LINE_PLOTS = False
     one_trail(run_size = True, run_nrand = True, run_nsens = True)
 
-def standard_run_for_line_plots():
+def standard_run_for_line_plots(n = 10):
     global CREATE_HEATMAPS
     CREATE_HEATMAPS = False
     global CREATE_LINE_PLOTS
     CREATE_LINE_PLOTS = True
-    n_trails(n = 10, run_size = True, run_nrand = True, run_nsens = True)
+    n_trails(n = n, run_size = True, run_nrand = True, run_nsens = True)
+
+def standard_run_for_testing_input_duration():
+    global CREATE_HEATMAPS
+    CREATE_HEATMAPS = True
+    global CREATE_LINE_PLOTS
+    CREATE_LINE_PLOTS = False
+    for i in range(1, 10):
+        main_annemarie.INPUT_DURATION = i
+        one_run(512, 1024, 'heatmap_for_input_duration', [], [], [], [], True)
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -193,9 +208,10 @@ start_time = time.time()
 #standard_run_for_heatmaps()
 
 # for generating line plots
-standard_run_for_line_plots()
+standard_run_for_line_plots(100)
 
-
+# for testing input duration
+#standard_run_for_testing_input_duration()
 
 end_time = time.time()
 execution_time = end_time - start_time
