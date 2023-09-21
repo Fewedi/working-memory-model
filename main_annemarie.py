@@ -18,6 +18,9 @@ N_SENS = 512
 # final should be 1024
 N_RAND = 1024
 
+BELL_INPUT = False
+BINARY_INPUT = True
+
 
 alpha_intra_connections = 0.28
 excitatory_probability = 0.35
@@ -34,6 +37,12 @@ def setup_random_layer_neurons():
     return np.arange(N_RAND)
 
 def create_input(input_size, center, width):
+    if BELL_INPUT:
+        return bell_curve_input(input_size, center, width)
+    elif BINARY_INPUT:
+        return binary_input(input_size, center, width)
+
+def bell_curve_input(input_size, center, width):
     # Create an array of indices
     indices = np.arange(input_size)
 
@@ -44,6 +53,22 @@ def create_input(input_size, center, width):
     bell_curve /= np.max(bell_curve)
     
     return bell_curve
+
+def binary_input(input_size, center, width):
+    # Create an array of indices
+    indices = np.arange(input_size)
+
+    # Calculate the bell curve values using a Gaussian function
+    bell_curve = np.exp(-(np.minimum(np.abs(indices - center), input_size - np.abs(indices - center)) ** 2) / (2 * width ** 2))
+
+    # Normalize the bell curve values to have a maximum value of 1
+    bell_curve /= np.max(bell_curve)
+
+    # Set a threshold value (e.g., 0.5) to convert values above the threshold to 1 and values below or equal to the threshold to 0
+    threshold = 0.45
+    binary_bell_curve = (bell_curve > threshold).astype(int)
+
+    return binary_bell_curve
 
 def setup_weights_ixs():
     # is this sufficient?

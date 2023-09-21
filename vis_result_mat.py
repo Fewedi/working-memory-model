@@ -10,6 +10,7 @@ import time
 
 
 def create_heatmap(csv_name, png_name, folder_name):
+    folder_name = "results/" + folder_name
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
     df = pd.read_csv(csv_name, header=None).transpose()
@@ -23,6 +24,8 @@ def create_heatmap(csv_name, png_name, folder_name):
     #plt.show()
 
 def line_plot(data, run_names, y_label, title, folder_name):
+
+    folder_name = "results/" + folder_name
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
     plt.figure(figsize=(8, 6))  # Optional: Set the figure size
@@ -61,8 +64,10 @@ def calc_diff_for_every_two_iterations(result_matrix):
 def one_run(n_sens, n_rand, foldername, means, vars, diffs, run_names, track_input_duration = False):
     main_annemarie.N_RAND = n_rand
     main_annemarie.N_SENS = n_sens
-    main_annemarie.STEPS = 10
-    main_annemarie.STEP_STOP_INIT = 2
+    main_annemarie.STEPS = STEPS
+    main_annemarie.STEP_STOP_INIT = STEP_STOP_INIT
+    main_annemarie.BELL_INPUT = INPUT_BELL
+    main_annemarie.BINARY_INPUT = INPUT_BINARY
     result_matrix = main_annemarie.run_simulation()
     means.append(calc_mean_for_each_iteration(result_matrix))
     vars.append(calc_var_for_each_iteration(result_matrix))
@@ -174,6 +179,12 @@ def n_trails(n = 10, run_size = True, run_nrand = True, run_nsens = True):
 CREATE_HEATMAPS = False
 CREATE_LINE_PLOTS = True
 
+INPUT_BELL = True
+INPUT_BINARY = False
+
+STEPS = 10
+STEP_STOP_INIT = 2
+
 
 def standard_run_for_heatmaps():
     global CREATE_HEATMAPS 
@@ -182,7 +193,7 @@ def standard_run_for_heatmaps():
     CREATE_LINE_PLOTS = False
     one_trail(run_size = True, run_nrand = True, run_nsens = True)
 
-def standard_run_for_line_plots(n = 10):
+def standard_run_for_line_plots(n):
     global CREATE_HEATMAPS
     CREATE_HEATMAPS = False
     global CREATE_LINE_PLOTS
