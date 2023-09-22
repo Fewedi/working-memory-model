@@ -20,7 +20,10 @@ def create_heatmap(csv_name, png_name, folder_name):
     plt.xlabel('Iteration')
     plt.ylabel('Neuron im Sensory Layer')    
     save_path = os.path.join(folder_name,png_name)
-    plt.savefig(save_path)
+    if JUST_SHOW:
+        plt.show()
+    else:
+        plt.savefig(save_path)
     #plt.show()
 
 def line_plot(data, run_names, y_label, title, folder_name):
@@ -44,7 +47,10 @@ def line_plot(data, run_names, y_label, title, folder_name):
     plt.legend()
     png_name = title + ".png"
     save_path = os.path.join(folder_name,png_name)
-    plt.savefig(save_path)
+    if JUST_SHOW:
+        plt.show()
+    else:
+        plt.savefig(save_path)
 
 def calc_mean_for_each_iteration(result_matrix):
     return np.mean(result_matrix, axis=1)
@@ -68,6 +74,8 @@ def one_run(n_sens, n_rand, foldername, means, vars, diffs, run_names, track_inp
     main_annemarie.STEP_STOP_INIT = STEP_STOP_INIT
     main_annemarie.BELL_INPUT = INPUT_BELL
     main_annemarie.BINARY_INPUT = INPUT_BINARY
+    main_annemarie.CUTTOFF_BELL_INPUT = INPUT_CUTTOFF_BELL
+    main_annemarie.CUTTOFF_BELL_INPUT_FACTOR = INPUT_CUTTOFF_BELL_FACTOR
     result_matrix = main_annemarie.run_simulation()
     means.append(calc_mean_for_each_iteration(result_matrix))
     vars.append(calc_var_for_each_iteration(result_matrix))
@@ -175,15 +183,60 @@ def n_trails(n = 10, run_size = True, run_nrand = True, run_nsens = True):
     if run_nsens:
         n_trails_for_one_experiment(n, multiple_runs_nsens, "multiple runs with fixed nrand {n} trails".format(n=n), "lines_for_fixed_rand_{n}_trails".format(n=n))
 
+def plot_bell_curves(n_sens = 512):
+    bell_curve = main_annemarie.bell_curve_input(n_sens, n_sens/2, n_sens/8)
+    binary_curve = main_annemarie.binary_input(n_sens, n_sens/2, n_sens/8)
+    cuttoff_bell_curve_2 = main_annemarie.cutoff_bell_curve_input(n_sens, n_sens/2, n_sens/8, 2.0)
+    cuttoff_bell_curve_1_5 = main_annemarie.cutoff_bell_curve_input(n_sens, n_sens/2, n_sens/8, 1.5)
+    cuttoff_bell_curve_1_1 = main_annemarie.cutoff_bell_curve_input(n_sens, n_sens/2, n_sens/8, 1.1)
+    plt.plot(bell_curve, label="bell")
+    plt.plot(cuttoff_bell_curve_2, label="cutoff bell f=2")
+    plt.plot(cuttoff_bell_curve_1_5, label="cutoff bell f=1.5")
+    plt.plot(cuttoff_bell_curve_1_1, label="cutoff bell f=1.1")
+    plt.plot(binary_curve, label="binary")
+    plt.legend()
+    plt.title('Input Varianten')
+    plt.xlabel('Neuron im Sensory Layer')
+    plt.ylabel('Aktivierung')  
+    if JUST_SHOW:
+        plt.show()
+    else:
+        if not os.path.exists("other_results"):
+            os.makedirs("other_results")
+        plt.savefig("other_results/bell_curves.png")
+    means = []
+    means.append(np.mean(bell_curve))
+    means.append(np.mean(cuttoff_bell_curve_2))
+    means.append(np.mean(cuttoff_bell_curve_1_5))
+    means.append(np.mean(cuttoff_bell_curve_1_1))
+    means.append(np.mean(binary_curve))
+    names = ["bell", "cutoff bell f=2", "cutoff bell f=1.5", "cutoff bell f=1.1", "binary"]
+    colors = ["blue", "orange", "green", "red", "purple"]
+    plt.figure(figsize=(8, 6))  # Optional: Set the figure size
+    plt.bar(names, means, color=colors)
+    plt.title('Mittelwerte der Input Varianten')
+    plt.xlabel('Input Varianten')
+    plt.ylabel('Mittelwert')
+    if JUST_SHOW:
+        plt.show()
+    else:
+        if not os.path.exists("other_results"):
+            os.makedirs("other_results")
+        plt.savefig("other_results/bell_curves_means.png")
     
 CREATE_HEATMAPS = False
 CREATE_LINE_PLOTS = True
 
-INPUT_BELL = True
+INPUT_BELL = False
 INPUT_BINARY = False
+INPUT_CUTTOFF_BELL = True
+INPUT_CUTTOFF_BELL_FACTOR = 2.0
+
 
 STEPS = 10
 STEP_STOP_INIT = 2
+
+JUST_SHOW = False
 
 
 def standard_run_for_heatmaps():
@@ -206,9 +259,29 @@ def standard_run_for_testing_input_duration():
     global CREATE_LINE_PLOTS
     CREATE_LINE_PLOTS = False
     for i in range(1, 10):
-        main_annemarie.INPUT_DURATION = i
+        main_annemarie.CUTTOFF_BELL_INPUT = i
         one_run(512, 1024, 'heatmap_for_input_duration', [], [], [], [], True)
 
+def just_one_run():
+    global CREATE_HEATMAPS
+    global CREATE_LINE_PLOTS
+    global INPUT_BELL 
+    global INPUT_BINARY
+    global INPUT_CUTTOFF_BELL
+    global INPUT_CUTTOFF_BELL_FACTOR
+    global STEPS
+    global STEP_STOP_INIT
+    global JUST_SHOW
+    CREATE_HEATMAPS = True
+    CREATE_LINE_PLOTS = True
+    INPUT_BELL = False
+    INPUT_BINARY = False
+    INPUT_CUTTOFF_BELL = True
+    INPUT_CUTTOFF_BELL_FACTOR = 2.0
+    STEPS = 100
+    STEP_STOP_INIT = 20
+    JUST_SHOW = False
+    one_run(512, 1024, 'single_runs', [], [], [], [], False)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -219,10 +292,16 @@ start_time = time.time()
 #standard_run_for_heatmaps()
 
 # for generating line plots
-standard_run_for_line_plots(100)
+# standard_run_for_line_plots(100)
 
 # for testing input duration
-#standard_run_for_testing_input_duration()
+# standard_run_for_testing_input_duration()
+
+# for just one run
+# just_one_run()
+
+# for Plotting all bell curves
+plot_bell_curves()
 
 end_time = time.time()
 execution_time = end_time - start_time

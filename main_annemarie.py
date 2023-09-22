@@ -19,8 +19,9 @@ N_SENS = 512
 N_RAND = 1024
 
 BELL_INPUT = False
-BINARY_INPUT = True
-
+BINARY_INPUT = False
+CUTTOFF_BELL_INPUT= True
+CUTTOFF_BELL_INPUT_FACTOR = 2.0
 
 alpha_intra_connections = 0.28
 excitatory_probability = 0.35
@@ -41,6 +42,8 @@ def create_input(input_size, center, width):
         return bell_curve_input(input_size, center, width)
     elif BINARY_INPUT:
         return binary_input(input_size, center, width)
+    elif CUTTOFF_BELL_INPUT:
+        return cutoff_bell_curve_input(input_size, center, width, CUTTOFF_BELL_INPUT_FACTOR)
 
 def bell_curve_input(input_size, center, width):
     # Create an array of indices
@@ -52,6 +55,20 @@ def bell_curve_input(input_size, center, width):
     # Normalize the bell curve values to have a maximum value of 1
     bell_curve /= np.max(bell_curve)
     
+    return bell_curve
+
+def cutoff_bell_curve_input(input_size, center, width, factor):
+    #  input = create_input(N_SENS, N_SENS/2, N_SENS/8)
+    # Create an array of indices
+    indices = np.arange(input_size)
+
+    # Calculate the bell curve values using a Gaussian function
+    bell_curve = np.exp(-(np.minimum(np.abs(indices - center), input_size - np.abs(indices - center)) ** 2) / (2 * width ** 2))
+
+    # Normalize the bell curve values to have a maximum value of 1
+    bell_curve /= np.max(bell_curve)
+    bell_curve = bell_curve * factor - (factor - 1)
+    bell_curve = np.maximum(bell_curve, 0)
     return bell_curve
 
 def binary_input(input_size, center, width):
